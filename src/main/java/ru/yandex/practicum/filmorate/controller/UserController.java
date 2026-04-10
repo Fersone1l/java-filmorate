@@ -7,7 +7,6 @@
     import ru.yandex.practicum.filmorate.exception.NotFoundException;
     import ru.yandex.practicum.filmorate.model.User;
 
-    import java.time.LocalDate;
     import java.util.Collection;
     import java.util.HashMap;
     import java.util.Map;
@@ -26,7 +25,6 @@
         @PostMapping
         public User create(@Valid @RequestBody User user) {
             // проверяем выполнение необходимых условий
-            checkConditions(user);
             user.setId(getNextId());
             if (user.getName() == null || user.getName().isBlank()) {
                 user.setName(user.getLogin());
@@ -55,22 +53,18 @@
             }
             if (users.containsKey(newUser.getId())) {
                 User oldUser = users.get(newUser.getId());
-                checkConditions(newUser);
                 oldUser.setEmail(newUser.getEmail());
                 oldUser.setLogin(newUser.getLogin());
-                oldUser.setName(newUser.getName());
+
+                if (newUser.getName() != null && !newUser.getName().isBlank()) {
+                    oldUser.setName(newUser.getName());
+                }
+
                 oldUser.setBirthday(newUser.getBirthday());
                 log.info("Пользователь с id = {} обновлен", newUser.getId());
                 return oldUser;
             }
             log.warn("Пользователь с id = {} не найден", newUser.getId());
             throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
-        }
-
-        private void checkConditions(User user) {
-            if (user.getBirthday().isAfter(LocalDate.now())) {
-                log.warn("Передана некорректная дата рождения: {}", user.getBirthday());
-                throw new ConditionsNotMetException("дата рождения не может быть в будущем");
-            }
         }
     }

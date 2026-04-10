@@ -50,10 +50,12 @@ class UserControllerTest {
         User user = new User();
         user.setEmail("test@mail.com");
         user.setLogin("login");
-        user.setBirthday(LocalDate.now().plusDays(1));
+        user.setBirthday(LocalDate.now().plusDays(1)); // дата в будущем
 
-        assertThrows(ConditionsNotMetException.class,
-                () -> controller.create(user));
+        var validator = Validation.buildDefaultValidatorFactory().getValidator();
+        var violations = validator.validate(user);
+
+        assertFalse(violations.isEmpty()); // проверяем, что есть ошибки валидации
     }
 
     @Test

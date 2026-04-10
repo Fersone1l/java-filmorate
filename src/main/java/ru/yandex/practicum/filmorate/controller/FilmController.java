@@ -18,6 +18,7 @@ import java.util.Map;
 @Slf4j
 public class FilmController {
     private final Map<Long, Film> films = new HashMap<>();
+    public static final LocalDate CINEMAS_BIRTHDAY = LocalDate.of(1895, 12, 28);
 
     @GetMapping
     public Collection<Film> findAll() {
@@ -67,13 +68,9 @@ public class FilmController {
     }
 
     private void checkConditions(Film film) {
-
-        LocalDate cinemasBirthday = LocalDate.of(1895, 12, 28);
-        if (film.getReleaseDate().isBefore(cinemasBirthday)) {
-
+        if (film.getReleaseDate().isBefore(CINEMAS_BIRTHDAY)) {
             log.warn("Передана некорректная дата релиза: {}", film.getReleaseDate());
             throw new ConditionsNotMetException("дата релиза — не раньше 28 декабря 1895 года");
         }
-
     }
 }
