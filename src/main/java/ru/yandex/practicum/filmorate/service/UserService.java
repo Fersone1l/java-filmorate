@@ -62,11 +62,6 @@ public class UserService {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
 
-        if (!user.getFriendsId().contains(friendId)) {
-            log.warn("Пользователи {} и {} и так не являются друзьями", userId, friendId);
-            throw new ValidationException("Пользователи " + userId + " и " + friendId + " и так не являются друзьями");
-        }
-
         user.getFriendsId().remove(friendId);
         friend.getFriendsId().remove(userId);
 
