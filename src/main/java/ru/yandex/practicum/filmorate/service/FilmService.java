@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.memory.InMemoryFilmStorage;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
+
+    public static final LocalDate CINEMAS_BIRTHDAY = LocalDate.of(1895, 12, 28);
 
 
     public Collection<Film> findAll() {
@@ -92,7 +95,7 @@ public class FilmService {
     }
 
     private void validateReleaseDate(Film film) {
-        if (film.getReleaseDate().isBefore(InMemoryFilmStorage.CINEMAS_BIRTHDAY)) {
+        if (film.getReleaseDate().isBefore(CINEMAS_BIRTHDAY)) {
             log.warn("Передана некорректная дата релиза: {}", film.getReleaseDate());
             throw new ValidationException("дата релиза — не раньше 28 декабря 1895 года");
         }

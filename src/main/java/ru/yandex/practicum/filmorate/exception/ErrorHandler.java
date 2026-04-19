@@ -21,7 +21,7 @@ public class ErrorHandler {
         // Получаем первое сообщение об ошибке
         String errorMessage = e.getBindingResult()
                 .getAllErrors()
-                .get(0)
+                .getFirst()
                 .getDefaultMessage();
 
         return new ErrorResponse(

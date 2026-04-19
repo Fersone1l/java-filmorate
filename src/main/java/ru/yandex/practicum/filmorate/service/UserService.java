@@ -51,7 +51,7 @@ public class UserService {
         user.getFriendsId().add(friendId);
         friend.getFriendsId().add(userId);
 
-        log.info("Пользователи {} и {} теперь друзья", user.getLogin(), user.getLogin());
+        log.info("Пользователи {} и {} теперь друзья", user.getLogin(), friend.getLogin());
 
         return user;
     }
