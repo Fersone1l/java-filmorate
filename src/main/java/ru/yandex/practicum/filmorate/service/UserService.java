@@ -63,14 +63,14 @@ public class UserService {
         User friend = userStorage.getUserById(friendId);
 
         if (!user.getFriendsId().contains(friendId)) {
-            log.warn("Пользователи и так не являются друзьями");
-            throw new ValidationException("Пользователи и так не являются друзьями");
+            log.warn("Пользователи {} и {} и так не являются друзьями", userId, friendId);
+            throw new ValidationException("Пользователи " + userId + " и " + friendId + " и так не являются друзьями");
         }
 
         user.getFriendsId().remove(friendId);
         friend.getFriendsId().remove(userId);
 
-        log.info("Пользователь {} и {} больше не друзья", user.getLogin(), user.getLogin());
+        log.info("Пользователь {} и {} больше не друзья", user.getLogin(), friend.getLogin());
 
         return user;
     }
