@@ -3,8 +3,12 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.memory.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.memory.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -16,7 +20,7 @@ class FilmControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new FilmController();
+        controller = new FilmController(new FilmService(new InMemoryFilmStorage(), new UserService(new InMemoryUserStorage())));
     }
 
     @Test
@@ -41,7 +45,7 @@ class FilmControllerTest {
         film.setReleaseDate(LocalDate.of(1800, 1, 1));
         film.setDuration(100);
 
-        assertThrows(ConditionsNotMetException.class,
+        assertThrows(ValidationException.class,
                 () -> controller.create(film));
     }
 
@@ -50,7 +54,7 @@ class FilmControllerTest {
         Film film = new Film();
         film.setName("Film");
 
-        assertThrows(ConditionsNotMetException.class,
+        assertThrows(ValidationException.class,
                 () -> controller.update(film));
     }
 
