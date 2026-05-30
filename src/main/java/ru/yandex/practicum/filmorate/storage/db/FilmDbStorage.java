@@ -80,14 +80,15 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film update(Film newFilm) {
         String sql = """
-                UPDATE films 
-                SET name = ?, 
-                description = ?, 
-                release_date = ?, 
-                duration = ?, 
-                mpa_rating_id = ? 
+                UPDATE films
+                SET name = ?,
+                description = ?,
+                release_date = ?,
+                duration = ?,
+                mpa_rating_id = ?
                 WHERE id = ?
                 """;
+
         int rowsUpdated = jdbcTemplate.update(sql,
                 newFilm.getName(),
                 newFilm.getDescription(),
@@ -140,16 +141,16 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getTopFilms(int count) {
         String sql = """
-        SELECT f.*, 
-               m.id AS mpa_id, 
-               m.code, 
-               COUNT(fl.user_id) AS likes_count 
-        FROM films f 
-        LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.id 
-        LEFT JOIN film_likes fl ON f.id = fl.film_id 
-        GROUP BY f.id, m.id, m.code 
-        ORDER BY likes_count DESC, f.id ASC 
-        LIMIT ? 
+        SELECT f.*,
+               m.id AS mpa_id,
+               m.code,
+               COUNT(fl.user_id) AS likes_count
+        FROM films f
+        LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.id
+        LEFT JOIN film_likes fl ON f.id = fl.film_id
+        GROUP BY f.id, m.id, m.code
+        ORDER BY likes_count DESC, f.id ASC
+        LIMIT ?
         """;
 
         List<Film> films = jdbcTemplate.query(sql, this::mapRowToFilm, count);

@@ -71,10 +71,10 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User update(User newUser) {
         String sql = """
-                UPDATE users 
-                SET email = ?, 
-                login = ?, 
-                name = ?, 
+                UPDATE users
+                SET email = ?,
+                login = ?,
+                name = ?,
                 birthday = ?
                 WHERE id = ?
                 """;
@@ -147,8 +147,8 @@ public class UserDbStorage implements UserStorage {
 
     private Set<Long> loadFriends(Long userId) {
         String sql = """
-        SELECT friend_id 
-        FROM friendships 
+        SELECT friend_id
+        FROM friendships
         WHERE user_id = ?
         ORDER BY friend_id
         """;
