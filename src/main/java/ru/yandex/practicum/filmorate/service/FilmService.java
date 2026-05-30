@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -12,14 +14,23 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
+@Qualifier("filmDbStorage")
 @RequiredArgsConstructor
 @Slf4j
 public class FilmService {
-    private final FilmStorage filmStorage;
+
+    private FilmStorage filmStorage;
     private final UserService userService;
+
+    @Autowired
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       UserService userService) {
+        this.filmStorage = filmStorage;
+        this.userService = userService;
+    }
+
 
     public static final LocalDate CINEMAS_BIRTHDAY = LocalDate.of(1895, 12, 28);
 
@@ -43,7 +54,7 @@ public class FilmService {
         userExists(userId);
 
         Film film = filmStorage.getFilmById(filmId);
-        Set<Long> likes = film.getLikedUserIds();
+        Set<Long> likes = film.getLikes();
 
         if (likes.contains(userId)) {
             log.warn("Пользователь с id = {} уже поставил лайк на этот фильм", userId);
@@ -51,16 +62,16 @@ public class FilmService {
         }
 
         log.info("Пользователь с id = {} поставил лайк на этот фильм", userId);
-        likes.add(userId);
+        filmStorage.addLike(filmId, userId);
 
-        return film;
+        return filmStorage.getFilmById(filmId);
     }
 
     public Film removeLike(Long filmId, Long userId) {
         userExists(userId);
 
         Film film = filmStorage.getFilmById(filmId);
-        Set<Long> likes = film.getLikedUserIds();
+        Set<Long> likes = film.getLikes();
 
         if (!likes.contains(userId)) {
             log.warn("Пользователь с id = {} не ставил лайк на этот фильм", userId);
@@ -68,19 +79,17 @@ public class FilmService {
         }
 
         log.info("Пользователь с id = {} убрал лайк с этого фильма", userId);
-        likes.remove(userId);
+        filmStorage.removeLike(filmId, userId);
 
-        return film;
+        return filmStorage.getFilmById(filmId);
     }
 
     public List<Film> getTopFilms(int count) {
-        return findAll().stream()
-                .sorted((f1, f2) -> Integer.compare(
-                        f2.getLikedUserIds().size(),
-                        f1.getLikedUserIds().size()
-                ))
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.getTopFilms(count);
+    }
+
+    public Film getFilmById(Long id) {
+        return filmStorage.getFilmById(id);
     }
 
     private void checkConditions(Film film) {

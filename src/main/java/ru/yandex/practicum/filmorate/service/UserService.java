@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -13,10 +15,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class UserService {
-    private final UserStorage userStorage;
+    @Autowired
+    @Qualifier("UserDbStorage")
+    private UserStorage userStorage;
+
+    public UserService(UserStorage userStorage) {
+        this.userStorage = userStorage;
+    }
 
     public Collection<User> findAll() {
         return userStorage.findAll();
@@ -41,33 +49,19 @@ public class UserService {
         validateNotSameUser(userId, friendId);
 
         User user = userStorage.getUserById(userId);
-        User friend = userStorage.getUserById(friendId);
 
         if (user.getFriendsId().contains(friendId)) {
             log.warn("Пользователи уже являются друзьями");
             throw new ValidationException("Пользователи уже являются друзьями");
         }
 
-        user.getFriendsId().add(friendId);
-        friend.getFriendsId().add(userId);
-
-        log.info("Пользователи {} и {} теперь друзья", user.getLogin(), friend.getLogin());
-
-        return user;
+        return userStorage.addFriend(userId, friendId);
     }
 
     public User removeFriend(Long userId, Long friendId) {
         validateNotSameUser(userId, friendId);
 
-        User user = userStorage.getUserById(userId);
-        User friend = userStorage.getUserById(friendId);
-
-        user.getFriendsId().remove(friendId);
-        friend.getFriendsId().remove(userId);
-
-        log.info("Пользователь {} и {} больше не друзья", user.getLogin(), friend.getLogin());
-
-        return user;
+        return userStorage.removeFriend(userId, friendId);
     }
 
     public List<User> getCommonFriends(Long id, Long otherId) {
