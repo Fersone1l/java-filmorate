@@ -218,7 +218,7 @@ public class FilmDbStorage implements FilmStorage {
                 "WHERE film_id = ? " +
                 "ORDER BY user_id";
 
-        List<Long> usersLikes = jdbcTemplate.queryForList(sql, Long.class , filmId);
+        List<Long> usersLikes = jdbcTemplate.queryForList(sql, Long.class, filmId);
 
         return new HashSet<>(usersLikes);
     }
