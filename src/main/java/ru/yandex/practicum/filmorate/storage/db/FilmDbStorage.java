@@ -102,9 +102,7 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", newFilm.getId());
-
         saveGenres(newFilm.getId(), newFilm.getGenres());
-
         log.info("Фильм с id = {} успешно обновлён", newFilm.getId());
 
         return getFilmById(newFilm.getId());
