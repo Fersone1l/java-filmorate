@@ -6,12 +6,10 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 
@@ -25,16 +23,7 @@ public class GenreDbStorage implements GenreStorage {
     public Collection<Genre> getAllGenre() {
         String sql = "SELECT * FROM genres ORDER BY id";
 
-        return jdbcTemplate.query(sql, this::mapRowToGenre);
-    }
-
-    private Genre mapRowToGenre(ResultSet rs, int rowNum) throws SQLException {
-        Genre genre = new Genre();
-
-        genre.setId(rs.getLong("id"));
-        genre.setName(rs.getString("name"));
-
-        return genre;
+        return jdbcTemplate.query(sql, GenreMapper::mapRowToGenre);
     }
 
     @Override
@@ -43,7 +32,7 @@ public class GenreDbStorage implements GenreStorage {
 
         Genre genre;
         try {
-            genre = jdbcTemplate.queryForObject(sql, this::mapRowToGenre, id);
+            genre = jdbcTemplate.queryForObject(sql, GenreMapper::mapRowToGenre, id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("MPA с id: " + id + " не найден");
         }

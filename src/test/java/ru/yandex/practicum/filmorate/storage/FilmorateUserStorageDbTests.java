@@ -57,32 +57,6 @@ class FilmorateUserStorageDbTests {
     }
 
     @Test
-    void testCreateUserWithEmptyNameShouldUseLogin() {
-        User user = new User();
-        user.setEmail("test@test.ru");
-        user.setLogin("testuser");
-        user.setName(""); // Пустое имя
-        user.setBirthday(LocalDate.of(1990, 1, 1));
-
-        User created = userStorage.create(user);
-
-        assertThat(created.getName()).isEqualTo("testuser"); // Имя должно стать равным логину
-    }
-
-    @Test
-    void testCreateUserWithNullNameShouldUseLogin() {
-        User user = new User();
-        user.setEmail("test@test.ru");
-        user.setLogin("testuser");
-        user.setName(null); // null имя
-        user.setBirthday(LocalDate.of(1990, 1, 1));
-
-        User created = userStorage.create(user);
-
-        assertThat(created.getName()).isEqualTo("testuser"); // Имя должно стать равным логину
-    }
-
-    @Test
     void testFindUserById() {
         User user = new User();
         user.setEmail("test@test.ru");

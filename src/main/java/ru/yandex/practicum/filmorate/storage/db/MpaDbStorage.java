@@ -6,12 +6,10 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.MpaMapper;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 
@@ -25,17 +23,9 @@ public class MpaDbStorage implements MpaStorage {
     public Collection<Mpa> getAllMpa() {
         String sql = "SELECT * FROM mpa_ratings ORDER BY id";
 
-        return jdbcTemplate.query(sql, this::mapRowToMpa);
+        return jdbcTemplate.query(sql, MpaMapper::mapRowToMpa);
     }
 
-    private Mpa mapRowToMpa(ResultSet rs, int rowNum) throws SQLException {
-        Mpa mpa = new Mpa();
-
-        mpa.setId(rs.getLong("id"));
-        mpa.setName(rs.getString("code"));
-
-        return mpa;
-    }
 
     @Override
     public Mpa getMpaById(Long id) {
@@ -43,7 +33,7 @@ public class MpaDbStorage implements MpaStorage {
 
         Mpa mpa;
         try {
-            mpa = jdbcTemplate.queryForObject(sql, this::mapRowToMpa, id);
+            mpa = jdbcTemplate.queryForObject(sql, MpaMapper::mapRowToMpa, id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("MPA с id: " + id + " не найден");
         }

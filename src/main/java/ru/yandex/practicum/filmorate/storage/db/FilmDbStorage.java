@@ -2,27 +2,23 @@ package ru.yandex.practicum.filmorate.storage.db;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 
 @Component
-@Qualifier("filmDbStorage")
 @RequiredArgsConstructor
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
@@ -34,7 +30,7 @@ public class FilmDbStorage implements FilmStorage {
                 "FROM films f " +
                 "LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.id";
 
-        List<Film> films = jdbcTemplate.query(sql, this::mapRowToFilm);
+        List<Film> films = jdbcTemplate.query(sql, FilmMapper::mapRowToFilm);
 
         for (Film film : films) {
             film.setGenres(loadGenres(film.getId()));
@@ -125,7 +121,7 @@ public class FilmDbStorage implements FilmStorage {
 
         Film film;
         try {
-            film = jdbcTemplate.queryForObject(sql, this::mapRowToFilm, id);
+            film = jdbcTemplate.queryForObject(sql, FilmMapper::mapRowToFilm, id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Фильм с id: " + id + " не найден");
         }
@@ -151,7 +147,7 @@ public class FilmDbStorage implements FilmStorage {
         LIMIT ?
         """;
 
-        List<Film> films = jdbcTemplate.query(sql, this::mapRowToFilm, count);
+        List<Film> films = jdbcTemplate.query(sql, FilmMapper::mapRowToFilm, count);
 
         for (Film film : films) {
             film.setGenres(loadGenres(film.getId()));
@@ -173,24 +169,6 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sql, filmId, userId);
     }
 
-    private Film mapRowToFilm(ResultSet rs, int rowNum) throws SQLException {
-        Film film = new Film();
-
-        film.setId(rs.getLong("id"));
-        film.setName(rs.getString("name"));
-        film.setDescription(rs.getString("description"));
-        film.setReleaseDate(rs.getDate("release_date").toLocalDate());
-        film.setDuration(rs.getInt("duration"));
-
-        Mpa mpa = new Mpa();
-
-        mpa.setId(rs.getLong("mpa_id"));
-        mpa.setName(rs.getString("code"));
-
-        film.setMpa(mpa);
-        return film;
-    }
-
     private Set<Genre> loadGenres(Long filmId) {
         String sql = "SELECT g.id, g.name " +
                 "FROM film_genres fg " +
@@ -198,19 +176,11 @@ public class FilmDbStorage implements FilmStorage {
                 "WHERE fg.film_id = ? " +
                 "ORDER BY g.id ASC";
 
-        List<Genre> genres = jdbcTemplate.query(sql, this::mapGenre, filmId);
+        List<Genre> genres = jdbcTemplate.query(sql, FilmMapper::mapGenre, filmId);
 
         return new LinkedHashSet<>(genres);
     }
 
-    private Genre mapGenre(ResultSet rs, int rowNum) throws SQLException {
-        Genre genre = new Genre();
-
-        genre.setId(rs.getLong("id"));
-        genre.setName(rs.getString("name"));
-
-        return genre;
-    }
 
     private Set<Long> loadUserLikes(Long filmId) {
         String sql = "SELECT user_id " +

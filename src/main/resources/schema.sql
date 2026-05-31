@@ -1,9 +1,9 @@
 -- USERS
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    email VARCHAR(50) NOT NULL,
-    login VARCHAR(50) NOT NULL,
-    name VARCHAR(50),
+    email VARCHAR(50) NOT NULL UNIQUE,
+    login VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL,
     birthday DATE
 );
 

@@ -2,24 +2,21 @@ package ru.yandex.practicum.filmorate.storage.db;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
-@Qualifier("UserDbStorage")
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -30,7 +27,7 @@ public class UserDbStorage implements UserStorage {
     public Collection<User> findAll() {
         String sql = "SELECT * FROM users";
 
-        List<User> users = jdbcTemplate.query(sql, this::mapRowToUser);
+        List<User> users = jdbcTemplate.query(sql, UserMapper::mapRowToUser);
 
         for (User user : users) {
             user.setFriendsId(loadFriends(user.getId()));
@@ -41,12 +38,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User create(User user) {
-
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-            log.info("Поле name отсутствует или пустое, поэтому name установлено значение из login: {}", user.getLogin());
-        }
-
         String sql = "INSERT INTO users (email, login, name, birthday) VALUES (?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -123,7 +114,7 @@ public class UserDbStorage implements UserStorage {
         String sql = "SELECT * FROM users WHERE id = ?";
 
         try {
-            User user = jdbcTemplate.queryForObject(sql, this::mapRowToUser, id);
+            User user = jdbcTemplate.queryForObject(sql, UserMapper::mapRowToUser, id);
 
             user.setFriendsId(loadFriends(user.getId()));
             return user;
@@ -131,18 +122,6 @@ public class UserDbStorage implements UserStorage {
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Пользователь с id = " + id + " не найден");
         }
-    }
-
-    private User mapRowToUser(ResultSet rs, int rowNum) throws SQLException {
-        User user = new User();
-
-        user.setId(rs.getLong("id"));
-        user.setEmail(rs.getString("email"));
-        user.setLogin(rs.getString("login"));
-        user.setName(rs.getString("name"));
-        user.setBirthday(rs.getDate("birthday").toLocalDate());
-
-        return user;
     }
 
     private Set<Long> loadFriends(Long userId) {
@@ -155,6 +134,29 @@ public class UserDbStorage implements UserStorage {
 
         List<Long> friends = jdbcTemplate.queryForList(sql, Long.class, userId);
         return new HashSet<>(friends);
+    }
+
+    @Override
+    public List<User> getCommonFriends(Long id, Long otherId) {
+        String sql = """
+                SELECT u.*
+                FROM users u
+                INNER JOIN friendships f1 ON u.id = f1.friend_id AND f1.user_id = ?
+                INNER JOIN friendships f2 ON u.id = f2.friend_id AND f2.user_id = ?
+                """;
+
+        return jdbcTemplate.query(sql, UserMapper::mapRowToUser, id, otherId);
+    }
+
+    @Override
+    public List<User> getFriends(Long id) {
+        String sql = """
+                SELECT u.*
+                FROM users u
+                INNER JOIN friendships f ON u.id = f.friend_id AND f.user_id = ?
+                """;
+
+        return jdbcTemplate.query(sql, UserMapper::mapRowToUser, id);
     }
 
 }

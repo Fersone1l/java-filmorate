@@ -2,8 +2,6 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -12,37 +10,31 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
-    @Autowired
-    @Qualifier("UserDbStorage")
-    private UserStorage userStorage;
-
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
+    private final UserStorage userStorage;
 
     public Collection<User> findAll() {
         return userStorage.findAll();
     }
 
     public User create(User user) {
+        setLoginToName(user);
         return userStorage.create(user);
     }
 
     public User update(User newUser) {
         checkConditions(newUser.getId());
+        setLoginToName(newUser);
         return userStorage.update(newUser);
     }
 
     public List<User> getFriends(Long id) {
-        return userStorage.getUserById(id).getFriendsId().stream()
-                .map(userStorage::getUserById)
-                .collect(Collectors.toList());
+        checkConditions(id);
+        return userStorage.getFriends(id);
     }
 
     public User addFriend(Long userId, Long friendId) {
@@ -67,13 +59,7 @@ public class UserService {
     public List<User> getCommonFriends(Long id, Long otherId) {
         validateNotSameUser(id,otherId);
 
-        User user = userStorage.getUserById(id);
-        User otherUser = userStorage.getUserById(otherId);
-
-        return user.getFriendsId().stream()
-                .filter(userId -> otherUser.getFriendsId().contains(userId))
-                .map(userStorage::getUserById)
-                .collect(Collectors.toList());
+       return userStorage.getCommonFriends(id, otherId);
     }
 
     public Boolean userExists(Long id) {
@@ -88,6 +74,14 @@ public class UserService {
             log.warn("Пользователь с id = {} не найден", id);
             throw new NotFoundException("Пользователь с id = " + id + " не найден");
         }
+    }
+
+    private void setLoginToName(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+            log.info("Поле name отсутствует или пустое, поэтому name установлено значение из login: {}", user.getLogin());
+        }
+
     }
 
     private void validateNotSameUser(Long userId, Long friendId) {

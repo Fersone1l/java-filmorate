@@ -2,8 +2,6 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -16,21 +14,11 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-@Qualifier("filmDbStorage")
 @RequiredArgsConstructor
 @Slf4j
 public class FilmService {
-
-    private FilmStorage filmStorage;
+    private final FilmStorage filmStorage;
     private final UserService userService;
-
-    @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
-                       UserService userService) {
-        this.filmStorage = filmStorage;
-        this.userService = userService;
-    }
-
 
     public static final LocalDate CINEMAS_BIRTHDAY = LocalDate.of(1895, 12, 28);
 
